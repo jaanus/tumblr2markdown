@@ -7,6 +7,8 @@ import re
 import os
 import codecs
 import argparse
+import hashlib # for image URL->path hashing
+import urllib2 # for image downloading
 
 
 
@@ -15,8 +17,57 @@ def processPostBodyForImages(postBody, downloadImages, imagesPath):
 	if not downloadImages:
 		return postBody
 
-	print "should process body here"
+	tumblrImageUrl = re.compile(r"https?://[0-z.]+tumblr\.com/[0-z]+(\.jpg|\.png)")
+
+	while True:
+
+		# Coding pattern recommended by http://docs.python.org/2/faq/design.html#why-can-t-i-use-an-assignment-in-an-expression
+		imageMatch = re.search(tumblrImageUrl, postBody)
+		if not imageMatch:
+			break
+
+		concreteImageUrl = imageMatch.group(0)
+		concreteImageExtension = imageMatch.group(1)
+		imageHash = hashlib.sha256(concreteImageUrl).hexdigest()
+
+		# Create the image folder if it does not exist
+		if not os.path.exists(imagesPath):
+			os.makedirs(imagesPath)
+
+		concreteImagePath = os.path.join(imagesPath, imageHash + concreteImageExtension)
+
+		# assumes that all images are downloaded in full by httpclient
+		if os.path.exists(concreteImagePath):
+			postBody = postBody.replace(concreteImageUrl, concreteImagePath)
+			print "Found image url", concreteImageUrl, "already downloaded to path", concreteImagePath
+		else:
+
+			imageContent = urllib2.urlopen(concreteImageUrl).read()
+			f = open(concreteImagePath, 'wb')
+			f.write(imageContent)
+			f.close()
+
+			postBody = postBody.replace(concreteImageUrl, concreteImagePath)
+			print "Downloaded image url", concreteImageUrl, "to path", concreteImagePath
+
+
+
+
+
 	return postBody
+
+
+	# imageFound = re.search(tumblrImageUrl, postBody)
+	# if imageFound:
+	# 	print "found image url in post:"
+	# 	print postBody
+
+# >>> while re.search(a, string):
+# ...  string = re.sub(a, "x", string, 1)
+
+# while True:
+
+	# return postBody
 
 
 
