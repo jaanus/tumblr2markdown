@@ -17,7 +17,7 @@ def processPostBodyForImages(postBody, downloadImages, imagesPath, imagesUrlPath
 	if not downloadImages:
 		return postBody
 
-	tumblrImageUrl = re.compile(r"https?://[0-z.]+tumblr\.com/[0-z]+(\.jpg|\.png)")
+	tumblrImageUrl = re.compile(r"https?://[0-z.]+tumblr\.com/[0-z]+(\.jpe?g|\.png|\.gif)")
 
 	while True:
 
