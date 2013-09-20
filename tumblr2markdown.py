@@ -69,7 +69,7 @@ def downloader(apiKey, host, postsPath, downloadImages, imagesPath, imagesUrlPat
 
 	posts_per_type = {}
 
-	while (processed < total_posts) and (processed < 50):
+	while processed < total_posts:
 		response = client.posts(host, limit=20, offset=processed, filter='raw')
 		total_posts = response['total_posts']
 		posts = response['posts']
