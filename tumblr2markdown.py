@@ -50,24 +50,7 @@ def processPostBodyForImages(postBody, downloadImages, imagesPath):
 			postBody = postBody.replace(concreteImageUrl, concreteImagePath)
 			print "Downloaded image url", concreteImageUrl, "to path", concreteImagePath
 
-
-
-
-
 	return postBody
-
-
-	# imageFound = re.search(tumblrImageUrl, postBody)
-	# if imageFound:
-	# 	print "found image url in post:"
-	# 	print postBody
-
-# >>> while re.search(a, string):
-# ...  string = re.sub(a, "x", string, 1)
-
-# while True:
-
-	# return postBody
 
 
 
