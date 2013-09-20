@@ -12,7 +12,7 @@ import urllib2 # for image downloading
 
 
 
-def processPostBodyForImages(postBody, downloadImages, imagesPath):
+def processPostBodyForImages(postBody, downloadImages, imagesPath, imagesUrlPath):
 
 	if not downloadImages:
 		return postBody
@@ -35,10 +35,11 @@ def processPostBodyForImages(postBody, downloadImages, imagesPath):
 			os.makedirs(imagesPath)
 
 		concreteImagePath = os.path.join(imagesPath, imageHash + concreteImageExtension)
+		imageOutputUrlPath = os.path.join(imagesUrlPath, imageHash + concreteImageExtension)
 
 		# assumes that all images are downloaded in full by httpclient
 		if os.path.exists(concreteImagePath):
-			postBody = postBody.replace(concreteImageUrl, concreteImagePath)
+			postBody = postBody.replace(concreteImageUrl, imageOutputUrlPath)
 			print "Found image url", concreteImageUrl, "already downloaded to path", concreteImagePath
 		else:
 
@@ -47,14 +48,14 @@ def processPostBodyForImages(postBody, downloadImages, imagesPath):
 			f.write(imageContent)
 			f.close()
 
-			postBody = postBody.replace(concreteImageUrl, concreteImagePath)
+			postBody = postBody.replace(concreteImageUrl, imageOutputUrlPath)
 			print "Downloaded image url", concreteImageUrl, "to path", concreteImagePath
 
 	return postBody
 
 
 
-def downloader(apiKey, host, postsPath, downloadImages, imagesPath):
+def downloader(apiKey, host, postsPath, downloadImages, imagesPath, imagesUrlPath):
 
 	# Authenticate via API Key
 	client = pytumblr.TumblrRestClient(apiKey)
@@ -120,7 +121,7 @@ def downloader(apiKey, host, postsPath, downloadImages, imagesPath):
 				print post
 
 			# download images if required
-			body = processPostBodyForImages(body, downloadImages, imagesPath)
+			body = processPostBodyForImages(body, downloadImages, imagesPath, imagesUrlPath)
 
 			# we have processed the post, have "title" and "body" by now, let’s dump it on disk
 
@@ -167,6 +168,7 @@ def main():
 	parser.add_argument('--posts-path', dest="postsPath", default="_posts", help="Output path for posts, by default “_posts”")
 	parser.add_argument('--download-images', dest="downloadImages", action="store_true", help="Whether to download images hosted on Tumblr into a local folder, and replace their URLs in posts")
 	parser.add_argument('--images-path', dest="imagesPath", default="images", help="If downloading images, store them to this local path, by default “images”")
+	parser.add_argument('--images-url-path', dest="imagesUrlPath", default="/images", help="If downloading images, this is the URL path where they are stored at, by default “/images”")
 
 	args = parser.parse_args()
 
@@ -178,7 +180,7 @@ def main():
 		print "Tumblr host name is required."
 		exit(0)
 
-	downloader(args.apiKey, args.host, args.postsPath, args.downloadImages, args.imagesPath)
+	downloader(args.apiKey, args.host, args.postsPath, args.downloadImages, args.imagesPath, args.imagesUrlPath)
 
 
 
