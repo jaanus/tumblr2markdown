@@ -12,10 +12,7 @@ import urllib2 # for image downloading
 
 
 
-def processPostBodyForImages(postBody, downloadImages, imagesPath, imagesUrlPath):
-
-	if not downloadImages:
-		return postBody
+def processPostBodyForImages(postBody, imagesPath, imagesUrlPath):
 
 	tumblrImageUrl = re.compile(r"https?://[0-z.]+tumblr\.com/[0-z]+(\.jpe?g|\.png|\.gif)")
 
@@ -37,11 +34,16 @@ def processPostBodyForImages(postBody, downloadImages, imagesPath, imagesUrlPath
 		concreteImagePath = os.path.join(imagesPath, imageHash + concreteImageExtension)
 		imageOutputUrlPath = os.path.join(imagesUrlPath, imageHash + concreteImageExtension)
 
-		# assumes that all images are downloaded in full by httpclient
+		# Assumes that all images are downloaded in full by httpclient, does not check for file integrity
 		if os.path.exists(concreteImagePath):
+
+			# This image was already downloaded, so just replace the URL in body
+
 			postBody = postBody.replace(concreteImageUrl, imageOutputUrlPath)
 			print "Found image url", concreteImageUrl, "already downloaded to path", concreteImagePath
 		else:
+
+			# Download the image and then replace the URL in body
 
 			imageContent = urllib2.urlopen(concreteImageUrl).read()
 			f = open(concreteImagePath, 'wb')
@@ -96,6 +98,8 @@ def downloader(apiKey, host, postsPath, downloadImages, imagesPath, imagesUrlPat
 			elif post["type"] == "video":
 				title = "Video post"
 
+				# Grab the widest embed code
+
 				known_width = 0
 				for player in post["player"]:
 					if player["width"] > known_width:
@@ -120,12 +124,13 @@ def downloader(apiKey, host, postsPath, downloadImages, imagesPath, imagesUrlPat
 
 				print post
 
-			# download images if required
-			body = processPostBodyForImages(body, downloadImages, imagesPath, imagesUrlPath)
+			# Download images if requested
+			if downloadImages:
+				body = processPostBodyForImages(body, imagesPath, imagesUrlPath)
 
-			# we have processed the post, have "title" and "body" by now, let’s dump it on disk
+			# We have completely processed the post and the Markdown is ready to be output
 
-			# generate a slug out of the title: replace weird characters …
+			# Generate a slug out of the title: replace weird characters …
 			slug=re.sub('[^0-9a-zA-Z- ]', '', title.lower().strip())
 
 			# … collapse spaces …
@@ -137,7 +142,7 @@ def downloader(apiKey, host, postsPath, downloadImages, imagesPath, imagesUrlPat
 			# … and prepend date
 			slug = postDate.strftime("%Y-%m-%d-") + slug + ".markdown"
 
-			# if path does not exist, make it
+			# If path does not exist, make it
 			if not os.path.exists(postsPath):
 				os.makedirs(postsPath)
 
@@ -161,7 +166,7 @@ def main():
 	
 	parser = argparse.ArgumentParser(description="Tumblr to Markdown downloader",
 		epilog = """
-		This app downloads all your Tumblr content into Markdown files that are suitable for processing with Octopress. It optionally also downloads the images hosted on Tumblr and replaces their URLs with locally hosted versions.
+		This app downloads all your Tumblr content into Markdown files that are suitable for processing with Octopress. Optionally also downloads the images hosted on Tumblr and replaces their URLs with locally hosted versions.
 		""")
 	parser.add_argument('--apikey', dest="apiKey", required=True, help="Tumblr API key")
 	parser.add_argument('--host', dest="host", required=True, help="Tumblr site host, e.g example.tumblr.com")
