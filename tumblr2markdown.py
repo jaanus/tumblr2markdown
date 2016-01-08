@@ -77,7 +77,9 @@ def downloader(apiKey, host, postsPath, downloadImages, imagesPath, imagesUrlPat
 		posts = response['posts']
 		processed += len(posts)
 
+		print "Processing..."
 		for post in posts:
+			print "	http://" + host + "/post/" + str(post["id"])
 
 			try:
 				posts_per_type[post['type']] += 1
