@@ -107,7 +107,7 @@ def downloader(apiKey, host, postsPath, downloadImages, imagesPath, imagesUrlPat
 					if player["width"] > known_width:
 						player_code = player["embed_code"]
 
-				body = player_code + "\n\n" + post["caption"]
+				body = str(player_code) + "\n\n" + post["caption"]
 
 			elif post["type"] == "link":
 				title = "Link post"
