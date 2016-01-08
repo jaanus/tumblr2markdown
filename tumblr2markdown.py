@@ -14,7 +14,7 @@ import urllib2 # for image downloading
 
 def processPostBodyForImages(postBody, imagesPath, imagesUrlPath):
 
-	tumblrImageUrl = re.compile(r"https?://[0-z.]+tumblr\.com/[0-z]+(\.jpe?g|\.png|\.gif)")
+	tumblrImageUrl = re.compile(r"https?://[0-z.]+tumblr\.com/[0-z_/]+(\.jpe?g|\.png|\.gif)")
 
 	while True:
 
@@ -77,7 +77,9 @@ def downloader(apiKey, host, postsPath, downloadImages, imagesPath, imagesUrlPat
 		posts = response['posts']
 		processed += len(posts)
 
+		print "Processing..."
 		for post in posts:
+			print "	http://" + host + "/post/" + str(post["id"])
 
 			try:
 				posts_per_type[post['type']] += 1
@@ -105,7 +107,7 @@ def downloader(apiKey, host, postsPath, downloadImages, imagesPath, imagesUrlPat
 					if player["width"] > known_width:
 						player_code = player["embed_code"]
 
-				body = player_code + "\n\n" + post["caption"]
+				body = str(player_code) + "\n\n" + post["caption"]
 
 			elif post["type"] == "link":
 				title = "Link post"
@@ -131,22 +133,22 @@ def downloader(apiKey, host, postsPath, downloadImages, imagesPath, imagesUrlPat
 			# We have completely processed the post and the Markdown is ready to be output
 
 			# Generate a slug out of the title: replace weird characters …
-			slug=re.sub('[^0-9a-zA-Z- ]', '', title.lower().strip())
+			slug = re.sub('[^0-9a-zA-Z- ]', '', title.lower().strip())
 
 			# … collapse spaces …
-			slug=re.sub(' +', ' ', slug)
+			slug = re.sub(' +', ' ', slug)
 
 			# … convert spaces to tabs …
 			slug = slug.replace(' ', '-')
 
 			# … and prepend date
-			slug = postDate.strftime("%Y-%m-%d-") + slug + ".markdown"
+			slug = postDate.strftime("%Y-%m-%d-") + slug
 
 			# If path does not exist, make it
 			if not os.path.exists(postsPath):
 				os.makedirs(postsPath)
 
-			f = codecs.open(os.path.join(postsPath, slug), encoding='utf-8', mode="w")
+			f = codecs.open(findFileName(postsPath, slug), encoding='utf-8', mode="w")
 
 			tags = ""
 			if len(post["tags"]):
@@ -159,6 +161,24 @@ def downloader(apiKey, host, postsPath, downloadImages, imagesPath, imagesUrlPat
 		print "Processed", processed, "out of", total_posts, "posts"
 
 	print "Posts per type:", posts_per_type
+
+
+
+def findFileName(path, slug):
+	"""Make sure the file doesn't already exist"""
+	for attempt in range(0, 99):
+		file_name = makeFileName(path, slug, attempt)
+		if not os.path.exists(file_name):
+			return file_name
+
+	print "ERROR: Too many clashes trying to create filename " +  makeFileName(path, slug)
+	exit()
+
+
+
+def makeFileName(path, slug, exists = 0):
+	suffix = "" if exists == 0 else "-" + str(exists + 1)
+	return os.path.join(path, slug) + suffix + ".markdown"
 
 
 
