@@ -14,7 +14,7 @@ import urllib2 # for image downloading
 
 def processPostBodyForImages(postBody, imagesPath, imagesUrlPath):
 
-	tumblrImageUrl = re.compile(r"https?://[0-z.]+tumblr\.com/[0-z]+(\.jpe?g|\.png|\.gif)")
+	tumblrImageUrl = re.compile(r"https?://[0-z.]+tumblr\.com/[0-z_/]+(\.jpe?g|\.png|\.gif)")
 
 	while True:
 
